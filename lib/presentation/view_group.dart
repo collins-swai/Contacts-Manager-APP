@@ -1,8 +1,8 @@
-import 'package:contact_management/core/model/request/updateContactRequest/UpdateContactRequest.dart';
+import 'package:contact_management/core/model/request/groupUpdateRequest/GroupUpdateRequest.dart';
 import 'package:contact_management/core/model/response/contactResponse/ContactResponse.dart';
-import 'package:contact_management/core/model/response/deleteContactResponse/DeleteContactResponse.dart';
+import 'package:contact_management/core/model/response/deleteGroup/DeleteGroupResponse.dart';
 import 'package:contact_management/core/model/response/groupResponse/GroupResponse.dart';
-import 'package:contact_management/core/model/response/updateContactResponse/UpdateContactResponse.dart';
+import 'package:contact_management/core/model/response/groupUpdateResponse/GroupUpdateResponse.dart';
 import 'package:contact_management/data/network/network_service.dart';
 import 'package:contact_management/data/sharedPreference/shared_preference_helper.dart';
 import 'package:contact_management/presentation/home_screen.dart';
@@ -11,50 +11,43 @@ import 'package:contact_management/theme/color_constant.dart';
 import 'package:contact_management/theme/size_utils.dart';
 import 'package:flutter/material.dart';
 
-class ManageContactScreen extends StatefulWidget {
-  const ManageContactScreen({super.key, required this.contactResponse, required this.groupResponse, required this.selectedContacts});
+class ViewGroupScreen extends StatefulWidget {
+  const ViewGroupScreen(
+      {super.key,
+      required this.contactResponse,
+      required this.groupResponse,
+      required this.selectedContacts});
 
   final ContactResponse contactResponse;
-
   final GroupResponse groupResponse;
-
   final List<ContactResponse> selectedContacts;
 
   @override
-  State<ManageContactScreen> createState() => _ManageContactScreenState();
+  State<ViewGroupScreen> createState() => _ViewGroupScreenState();
 }
 
-class _ManageContactScreenState extends State<ManageContactScreen> {
+class _ViewGroupScreenState extends State<ViewGroupScreen> {
   NetworkService service = NetworkService();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isLoading = false;
-  bool _isHidden = true;
-  bool submit = false;
   bool submits = false;
-  String _errorMessage = '';
-  Future<UpdateContactResponse>? updateContactResponse;
-  List<UpdateContactResponse>? update;
-  Future<DeleteContactResponse>? deleteContactResponse;
+  Future<GroupUpdateResponse>? groupUpdateResponse;
+  List<GroupUpdateResponse>? update;
+  Future<DeleteGroupResponse>? deleteGroupResponse;
 
   @override
   void initState() {
     super.initState();
     SharedPreferenceHelper().getUserInformation().then((value) {
       setState(() {
-        updateContactResponse = service.updateContactsRequests(
-            UpdateContactRequest(
-                name: nameController.text.toString().trim(),
-                email: emailController.text.toString().trim(),
-                phone: passwordController.text.toString().trim()),
+        groupUpdateResponse = service.groupUpdateRequests(
+            GroupUpdateRequest(name: nameController.text.toString().trim()),
             {"Bearer ${value.accessToken}"},
-            widget.contactResponse.id!);
-        print(
-            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^${widget.contactResponse.id}");
-        print("************************${updateContactResponse}");
+            widget.groupResponse.id!);
+        deleteGroupResponse = service.deleteGroup(
+            "Bearer ${value.accessToken}", widget.groupResponse.id!);
+        print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^${widget.groupResponse.id}");
       });
     });
   }
@@ -66,7 +59,7 @@ class _ManageContactScreenState extends State<ManageContactScreen> {
       keyboardType: TextInputType.name,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter your Contact Name';
+          return 'Please enter your Group Name';
         }
         return null;
       },
@@ -78,7 +71,7 @@ class _ManageContactScreenState extends State<ManageContactScreen> {
             borderSide: BorderSide(width: 1, color: Colors.grey),
           ),
           contentPadding: const EdgeInsets.fromLTRB(14.0, 1.0, 4.0, 2.0),
-          labelText: "Name",
+          labelText: "Group Name",
           labelStyle: AppStyle.txtInterMedium12.copyWith(
             letterSpacing: 0.50,
             height: 1.00,
@@ -86,45 +79,7 @@ class _ManageContactScreenState extends State<ManageContactScreen> {
           fillColor: ColorConstant.gray100),
     );
 
-    final emailField = TextFormField(
-      controller: emailController,
-      keyboardType: TextInputType.emailAddress,
-      decoration: InputDecoration(
-          enabledBorder: const OutlineInputBorder(
-            borderSide: BorderSide(width: 1, color: Colors.grey),
-          ),
-          focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(width: 1, color: Colors.grey),
-          ),
-          contentPadding: const EdgeInsets.fromLTRB(14.0, 1.0, 4.0, 2.0),
-          labelText: "Contact Email",
-          labelStyle: AppStyle.txtInterMedium12.copyWith(
-            letterSpacing: 0.50,
-            height: 1.00,
-          ),
-          fillColor: ColorConstant.gray100),
-    );
-
-    final passwordField = TextFormField(
-      controller: passwordController,
-      keyboardType: TextInputType.phone,
-      decoration: InputDecoration(
-        enabledBorder: const OutlineInputBorder(
-          borderSide: BorderSide(width: 1, color: Colors.grey),
-        ),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(width: 1, color: Colors.grey),
-        ),
-        contentPadding: const EdgeInsets.fromLTRB(14.0, 1.0, 4.0, 2.0),
-        labelText: "Contact Phone Number",
-        labelStyle: AppStyle.txtInterMedium12.copyWith(
-          letterSpacing: 0.50,
-          height: 1.00,
-        ),
-      ),
-    );
-
-    final createContact = Container(
+    final updateGroup = Container(
       child: ElevatedButton(
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
@@ -132,27 +87,26 @@ class _ManageContactScreenState extends State<ManageContactScreen> {
               isLoading = true;
             });
             SharedPreferenceHelper().getUserInformation().then((value) {
-              var request = UpdateContactRequest(
-                  name: nameController.text.toString().trim(),
-                  email: emailController.text.toString().trim(),
-                  phone: passwordController.text.toString().trim());
+              var request = GroupUpdateRequest(
+                name: nameController.text.toString().trim(),
+              );
               service
-                  .updateContactsRequests(
-                      request,
-                      "Bearer ${value.accessToken}",
-                      widget.contactResponse.id ?? 0)
+                  .groupUpdateRequests(request, "Bearer ${value.accessToken}",
+                      widget.groupResponse.id ?? 0)
                   .then((value) {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => HomeScreen(
-                              contactResponse: widget.contactResponse, groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
+                              contactResponse: widget.contactResponse,
+                              groupResponse: widget.groupResponse,
+                              selectedContacts: widget.selectedContacts,
                             )));
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text("Contact Updated successfully")));
+                    content: Text("Group Updated successfully")));
                 print("does it reach here?");
               }).onError((error, stackTrace) {
-                showMessage("Contact not updated");
+                showMessage("Group not updated");
                 setState(() {
                   isLoading = false;
                 });
@@ -167,7 +121,7 @@ class _ManageContactScreenState extends State<ManageContactScreen> {
           minimumSize: Size(360, 55),
         ),
         child: Text(
-          "Edit Contact",
+          "Edit Group",
           style: AppStyle.txtInterMediums18.copyWith(
             letterSpacing: 0.72,
           ),
@@ -181,7 +135,7 @@ class _ManageContactScreenState extends State<ManageContactScreen> {
           backgroundColor: Colors.grey,
           title: Center(
             child: Text(
-              'View Contact',
+              'View Group',
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.left,
               style: AppStyle.txtInterSemiBold24.copyWith(
@@ -206,20 +160,23 @@ class _ManageContactScreenState extends State<ManageContactScreen> {
                             .getUserInformation()
                             .then((value) {
                           service
-                              .deleteContacts("Bearer ${value.accessToken}",
-                                  widget.contactResponse.id ?? 0)
+                              .deleteGroup("Bearer ${value.accessToken}",
+                                  widget.groupResponse.id ?? 0)
                               .then((value) {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => HomeScreen(
                                           contactResponse:
-                                              widget.contactResponse, groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
+                                              widget.contactResponse,
+                                          groupResponse: widget.groupResponse,
+                                          selectedContacts:
+                                              widget.selectedContacts,
                                         )));
                             ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content:
-                                        Text("Contact Deleted successfully")));
+                                        Text("Group Deleted successfully")));
                             print("does it reach here?");
                           }).onError((error, stackTrace) {
                             showMessage("Contact not deleted");
@@ -277,74 +234,6 @@ class _ManageContactScreenState extends State<ManageContactScreen> {
                   padding: getPadding(top: 15),
                   child: Align(
                     alignment: Alignment.center,
-                    child: Container(
-                      height: getVerticalSize(74.00),
-                      width: getHorizontalSize(396.00),
-                      margin: getMargin(left: 16, right: 16, bottom: 4),
-                      child: Stack(
-                        alignment: Alignment.topLeft,
-                        children: [
-                          Align(
-                            alignment: Alignment.bottomLeft,
-                            child: Container(
-                              height: getVerticalSize(
-                                74.00,
-                              ),
-                              width: getHorizontalSize(
-                                396.00,
-                              ),
-                              margin: getMargin(
-                                top: 10,
-                              ),
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.topLeft,
-                            child: emailField,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: getPadding(top: 15),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      height: getVerticalSize(74.00),
-                      width: getHorizontalSize(396.00),
-                      margin: getMargin(left: 16, right: 16, bottom: 4),
-                      child: Stack(
-                        alignment: Alignment.topLeft,
-                        children: [
-                          Align(
-                            alignment: Alignment.bottomLeft,
-                            child: Container(
-                              height: getVerticalSize(
-                                74.00,
-                              ),
-                              width: getHorizontalSize(
-                                396.00,
-                              ),
-                              margin: getMargin(
-                                top: 10,
-                              ),
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.topLeft,
-                            child: passwordField,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: getPadding(top: 15),
-                  child: Align(
-                    alignment: Alignment.center,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -354,7 +243,7 @@ class _ManageContactScreenState extends State<ManageContactScreen> {
                           padding: getPadding(bottom: 2),
                           child: isLoading
                               ? const CircularProgressIndicator()
-                              : createContact,
+                              : updateGroup,
                         ),
                       ],
                     ),

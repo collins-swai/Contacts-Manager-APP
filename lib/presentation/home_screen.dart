@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:contact_management/core/model/response/contactResponse/ContactResponse.dart';
+import 'package:contact_management/core/model/response/groupResponse/GroupResponse.dart';
 import 'package:contact_management/presentation/add_contact.dart';
 import 'package:contact_management/presentation/manage_contact.dart';
 import 'package:contact_management/presentation/view_contact.dart';
@@ -8,10 +9,20 @@ import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:line_icons/line_icons.dart';
 
+import 'update_contact_screen.dart';
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.contactResponse});
+  const HomeScreen(
+      {super.key,
+      required this.contactResponse,
+      required this.groupResponse,
+      required this.selectedContacts});
+
+  final GroupResponse groupResponse;
 
   final ContactResponse contactResponse;
+
+  final List<ContactResponse> selectedContacts;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -25,10 +36,17 @@ class _HomeScreenState extends State<HomeScreen> {
     List<Widget> _widgetOptions = <Widget>[
       ViewContactScreen(
         contactResponse: widget.contactResponse,
+        groupResponse: widget.groupResponse,
+        selectedContacts: widget.selectedContacts,
       ),
-      AddContactScreen(contactResponse: widget.contactResponse,),
+      UpdateContactScreen(
+        contactResponse: widget.contactResponse,
+        groupResponse: widget.groupResponse,
+        selectedContacts: widget.selectedContacts,
+      ),
       AddContactScreen(
         contactResponse: widget.contactResponse,
+        groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
       )
     ];
     return WillPopScope(

@@ -1,5 +1,6 @@
 import 'package:contact_management/core/model/request/createGroupRequest/CreateGroupRequest.dart';
 import 'package:contact_management/core/model/response/contactResponse/ContactResponse.dart';
+import 'package:contact_management/core/model/response/groupResponse/GroupResponse.dart';
 import 'package:contact_management/data/network/network_service.dart';
 import 'package:contact_management/data/sharedPreference/shared_preference_helper.dart';
 import 'package:contact_management/presentation/home_screen.dart';
@@ -9,9 +10,17 @@ import 'package:contact_management/theme/size_utils.dart';
 import 'package:flutter/material.dart';
 
 class GroupScreen extends StatefulWidget {
-  const GroupScreen({super.key, required this.contactResponse});
+  const GroupScreen(
+      {super.key,
+      required this.contactResponse,
+      required this.groupResponse,
+      required this.selectedContacts});
 
   final ContactResponse contactResponse;
+
+  final List<ContactResponse> selectedContacts;
+
+  final GroupResponse groupResponse;
 
   @override
   State<GroupScreen> createState() => _GroupScreenState();
@@ -26,6 +35,7 @@ class _GroupScreenState extends State<GroupScreen> {
   bool _isChecked = false;
   bool submits = false;
   bool isLoading = false;
+  Set<int> selectedContactIds = Set<int>();
 
   Future<List<ContactResponse>>? contactResponse;
   List<ContactResponse>? response;
@@ -40,7 +50,7 @@ class _GroupScreenState extends State<GroupScreen> {
       SharedPreferenceHelper().getUserInformation().then((value) {
         contactResponse = service.getContacts("Bearer ${value.accessToken}");
 
-        createGroupRequest = service.newGroup(
+        createGroupRequest = service.createGroupResponses(
             CreateGroupRequest(name: nameController.text.toString().trim()),
             "Bearer ${value.accessToken}") as Future<CreateGroupRequest>?;
         print("@@@@@@@@@@@@@12345${value.accessToken}");
@@ -82,31 +92,52 @@ class _GroupScreenState extends State<GroupScreen> {
         shape: StadiumBorder(),
         minWidth: 350,
         onPressed: () async {
+          print("Button pressed");
           if (_formKey.currentState!.validate()) {
             setState(() {
               isLoading = true;
             });
-            SharedPreferenceHelper().getUserInformation().then((value) {
-              var request = CreateGroupRequest(
-                  name: nameController.text.toString().trim());
-              service
-                  .newGroup(request, "Bearer ${value.accessToken}")
-                  .then((value) {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => HomeScreen(
-                              contactResponse: widget.contactResponse,
-                            )));
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text("Group Created successfully")));
-              }).onError((error, stackTrace) {
-                showMessage("Group not created");
-                setState(() {
-                  isLoading = false;
-                });
+
+            try {
+              final value = await SharedPreferenceHelper().getUserInformation();
+              final request = CreateGroupRequest(
+                name: nameController.text.toString().trim(),
+              );
+
+              final createdGroup = await service.createGroupResponses(
+                request,
+                "Bearer ${value.accessToken}",
+              );
+
+              setState(() {
+                isLoading = false;
               });
-            });
+
+              if (createdGroup != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Group Created successfully")),
+                );
+
+                // Navigate to the desired screen upon successful creation
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeScreen(
+                      contactResponse: widget.contactResponse,
+                      groupResponse: widget.groupResponse,
+                      selectedContacts: widget.selectedContacts,
+                    ),
+                  ),
+                );
+              } else {
+                showMessage("Group not created");
+              }
+            } catch (error) {
+              setState(() {
+                isLoading = false;
+              });
+              showMessage("An error occurred: $error");
+            }
           }
         },
         child: Text(
@@ -129,6 +160,8 @@ class _GroupScreenState extends State<GroupScreen> {
                   MaterialPageRoute(
                       builder: (context) => HomeScreen(
                             contactResponse: widget.contactResponse,
+                            groupResponse: widget.groupResponse,
+                            selectedContacts: widget.selectedContacts,
                           )));
             },
             child: Icon(
@@ -138,167 +171,123 @@ class _GroupScreenState extends State<GroupScreen> {
         ),
         body: RefreshIndicator(
           onRefresh: _pullRefresh,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding: getPadding(top: 15),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Container(
-                    height: getVerticalSize(74.00),
-                    width: getHorizontalSize(396.00),
-                    margin: getMargin(left: 16, right: 16, bottom: 4),
-                    child: Stack(
-                      alignment: Alignment.topLeft,
-                      children: [
-                        Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Container(
-                            height: getVerticalSize(
-                              74.00,
-                            ),
-                            width: getHorizontalSize(
-                              396.00,
-                            ),
-                            margin: getMargin(
-                              top: 10,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Padding(
+                  padding: getPadding(top: 15),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      height: getVerticalSize(74.00),
+                      width: getHorizontalSize(396.00),
+                      margin: getMargin(left: 16, right: 16, bottom: 4),
+                      child: Stack(
+                        alignment: Alignment.topLeft,
+                        children: [
+                          Align(
+                            alignment: Alignment.bottomLeft,
+                            child: Container(
+                              height: getVerticalSize(
+                                74.00,
+                              ),
+                              width: getHorizontalSize(
+                                396.00,
+                              ),
+                              margin: getMargin(
+                                top: 10,
+                              ),
                             ),
                           ),
-                        ),
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: nameField,
-                        ),
-                      ],
+                          Align(
+                            alignment: Alignment.topLeft,
+                            child: nameField,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  height: 200,
-                  child: FutureBuilder<List<ContactResponse>>(
-                    future: contactResponse,
-                    builder: (context, snapshot) {
-                      print("data reaches here for${contactResponse}");
-                      if (snapshot.hasData) {
-                        return ListView.builder(
-                          itemCount: snapshot.data?.length,
-                          itemBuilder: (context, index) {
-                            print(
-                                "data reaches here ${snapshot.data?[index].id}");
-                            return Padding(
-                              padding: getPadding(left: 9, right: 9),
-                              child: Card(
-                                child: CheckboxListTile(
-                                  title: Text('${snapshot.data?[index].name}'),
-                                  value: _isChecked,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isChecked = value!;
-                                    });
-                                  },
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    height: 200,
+                    child: FutureBuilder<List<ContactResponse>>(
+                      future: contactResponse,
+                      builder: (context, snapshot) {
+                        print("data reaches here for${contactResponse}");
+                        if (snapshot.hasData) {
+                          return ListView.builder(
+                            itemCount: snapshot.data?.length,
+                            itemBuilder: (context, index) {
+                              final contactId = snapshot.data?[index].id ?? 0;
+                              final isSelected =
+                                  selectedContactIds.contains(contactId);
+                              print(
+                                  "data reaches here ${snapshot.data?[index].id}");
+                              return Padding(
+                                padding: getPadding(left: 9, right: 9),
+                                child: Card(
+                                  child: CheckboxListTile(
+                                    title:
+                                        Text('${snapshot.data?[index].name}'),
+                                    value: isSelected,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        if (value!) {
+                                          selectedContactIds.add(contactId);
+                                        } else {
+                                          selectedContactIds.remove(contactId);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                  // child: ListTile(
+                                  //   // title: Text('${snapshot.data?[index].name}'),
+                                  //   // subtitle: Column(
+                                  //   //   crossAxisAlignment: CrossAxisAlignment.start,
+                                  //   //   children: [
+                                  //   //     Text('Email: ${snapshot.data?[index].email}'),
+                                  //   //     Text('Phone: ${snapshot.data?[index].phone}'),
+                                  //   //   ],
+                                  //   // ),
+                                  // ),
                                 ),
-                                // child: ListTile(
-                                //   // title: Text('${snapshot.data?[index].name}'),
-                                //   // subtitle: Column(
-                                //   //   crossAxisAlignment: CrossAxisAlignment.start,
-                                //   //   children: [
-                                //   //     Text('Email: ${snapshot.data?[index].email}'),
-                                //   //     Text('Phone: ${snapshot.data?[index].phone}'),
-                                //   //   ],
-                                //   // ),
-                                // ),
-                              ),
-                            );
-                          },
-                        );
-                      } else if (snapshot.hasError) {
-                        return Text('${snapshot.error}');
-                      }
-                      return Center(
-                        child: const SizedBox(
-                          height: 40,
-                          width: 40,
-                          child: Center(
-                            child: CircularProgressIndicator(),
+                              );
+                            },
+                          );
+                        } else if (snapshot.hasError) {
+                          return Text('${snapshot.error}');
+                        }
+                        return Center(
+                          child: const SizedBox(
+                            height: 40,
+                            width: 40,
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              Center(
-                child:
-                    isLoading ? const CircularProgressIndicator() : createGroup,
-              )
-            ],
+                SizedBox(
+                  height: 20,
+                ),
+                Center(
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : createGroup,
+                )
+              ],
+            ),
           ),
         ),
-        // body: Padding(
-        //   padding: EdgeInsets.all(16.0),
-        //   child: Column(
-        //     crossAxisAlignment: CrossAxisAlignment.start,
-        //     children: [
-        //       Text(
-        //         'Group Name:',
-        //         style: TextStyle(fontSize: 18),
-        //       ),
-        //       TextFormField(
-        //         controller: groupNameController,
-        //         decoration: InputDecoration(
-        //           hintText: 'Enter group name',
-        //         ),
-        //       ),
-        //       SizedBox(height: 20),
-        //       Text(
-        //         'Select Contacts:',
-        //         style: TextStyle(fontSize: 18),
-        //       ),
-        //       Expanded(
-        //         child: ListView.builder(
-        //           itemCount: contacts.length,
-        //           itemBuilder: (context, index) {
-        //             return CheckboxListTile(
-        //               title: Text(contacts[index].name),
-        //               value: contacts[index].isSelected,
-        //               onChanged: (value) {
-        //                 setState(() {
-        //                   contacts[index].isSelected = value!;
-        //                 });
-        //               },
-        //             );
-        //           },
-        //         ),
-        //       ),
-        //       SizedBox(height: 20),
-        //       Center(
-        //         child: ElevatedButton(
-        //           onPressed: () {
-        //             // Perform action on button press, e.g., create the group
-        //             String groupName = groupNameController.text;
-        //             List<Contact> selectedContacts =
-        //                 contacts.where((contact) => contact.isSelected).toList();
-        //             // Perform action with group name and selected contacts
-        //             // For example: Create the group with the given name and contacts
-        //             print('Group Name: $groupName');
-        //             print(
-        //                 'Selected Contacts: ${selectedContacts.map((contact) => contact.name).toList()}');
-        //           },
-        //           child: Text('Create Group'),
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
       ),
     );
   }

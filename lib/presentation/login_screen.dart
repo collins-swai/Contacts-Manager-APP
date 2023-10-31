@@ -1,6 +1,7 @@
 import 'package:contact_management/core/local/local_user.dart';
 import 'package:contact_management/core/model/request/loginRequest/LoginRequest.dart';
 import 'package:contact_management/core/model/response/contactResponse/ContactResponse.dart';
+import 'package:contact_management/core/model/response/groupResponse/GroupResponse.dart';
 import 'package:contact_management/core/model/response/loginResponse/LoginResponse.dart';
 import 'package:contact_management/data/network/network_service.dart';
 import 'package:contact_management/data/sharedPreference/shared_preference_helper.dart';
@@ -13,9 +14,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.contactResponse});
+  const LoginScreen({super.key, required this.contactResponse, required this.groupResponse, required this.selectedContacts});
 
   final ContactResponse contactResponse;
+
+  final List<ContactResponse> selectedContacts;
+
+  final GroupResponse groupResponse;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -142,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => HomeScreen(
-                                    contactResponse: widget.contactResponse,
+                                    contactResponse: widget.contactResponse, groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
                                   )));
                       print("!!!!!!!!!!!!!!");
                       print("@@@@${login}");
@@ -317,7 +322,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       MaterialPageRoute(
                                           builder: (context) => RegisterScreen(
                                                 contactResponse:
-                                                    widget.contactResponse,
+                                                    widget.contactResponse, groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
                                               )));
                                 },
                               )

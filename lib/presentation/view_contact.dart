@@ -1,4 +1,5 @@
 import 'package:contact_management/core/model/response/contactResponse/ContactResponse.dart';
+import 'package:contact_management/core/model/response/groupResponse/GroupResponse.dart';
 import 'package:contact_management/core/model/response/loginResponse/LoginResponse.dart';
 import 'package:contact_management/data/network/network_service.dart';
 import 'package:contact_management/data/sharedPreference/shared_preference_helper.dart';
@@ -9,11 +10,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
 class ViewContactScreen extends StatefulWidget {
-  const ViewContactScreen({super.key, required this.contactResponse});
+  const ViewContactScreen({super.key, required this.contactResponse, required this.groupResponse, required this.selectedContacts});
 
   @override
   State<ViewContactScreen> createState() => _ViewContactScreenState();
   final ContactResponse contactResponse;
+  final GroupResponse groupResponse;
+  final List<ContactResponse> selectedContacts;
 }
 
 class _ViewContactScreenState extends State<ViewContactScreen> {
@@ -85,7 +88,7 @@ class _ViewContactScreenState extends State<ViewContactScreen> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => ManageContactScreen(
-                                          contactResponse: snapshot.data![index],
+                                          contactResponse: snapshot.data![index], groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
                                         )));
 
                             print(

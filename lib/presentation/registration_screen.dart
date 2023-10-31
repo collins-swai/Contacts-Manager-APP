@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:contact_management/core/model/request/register/RegisterRequest.dart';
 import 'package:contact_management/core/model/response/RegisterResponse/RegisterResponse.dart';
 import 'package:contact_management/core/model/response/contactResponse/ContactResponse.dart';
+import 'package:contact_management/core/model/response/groupResponse/GroupResponse.dart';
 import 'package:contact_management/data/network/network_service.dart';
 import 'package:contact_management/presentation/login_screen.dart';
 import 'package:contact_management/theme/app_style.dart';
@@ -12,9 +13,13 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key, required this.contactResponse});
+  const RegisterScreen({super.key, required this.contactResponse, required this.groupResponse, required this.selectedContacts});
 
   final ContactResponse contactResponse;
+
+  final List<ContactResponse> selectedContacts;
+
+  final GroupResponse groupResponse;
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -162,7 +167,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => LoginScreen(
-                            contactResponse: widget.contactResponse,
+                            contactResponse: widget.contactResponse, groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
                           )));
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                   content: Text("User registered successfully")));
@@ -357,7 +362,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       MaterialPageRoute(
                                           builder: (context) => LoginScreen(
                                                 contactResponse:
-                                                    widget.contactResponse,
+                                                    widget.contactResponse, groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
                                               )));
                                 },
                               )

@@ -1,6 +1,7 @@
 import 'package:contact_management/core/model/request/createContactRequest/CreateContactRequest.dart';
 import 'package:contact_management/core/model/response/contactResponse/ContactResponse.dart';
 import 'package:contact_management/core/model/response/createContactRespone/CreateContactResponse.dart';
+import 'package:contact_management/core/model/response/groupResponse/GroupResponse.dart';
 import 'package:contact_management/data/network/network_service.dart';
 import 'package:contact_management/data/sharedPreference/shared_preference_helper.dart';
 import 'package:contact_management/presentation/home_screen.dart';
@@ -10,9 +11,17 @@ import 'package:contact_management/theme/size_utils.dart';
 import 'package:flutter/material.dart';
 
 class AddContactScreen extends StatefulWidget {
-  const AddContactScreen({super.key, required this.contactResponse});
+  const AddContactScreen(
+      {super.key,
+      required this.contactResponse,
+      required this.groupResponse,
+      required this.selectedContacts});
 
   final ContactResponse contactResponse;
+
+  final List<ContactResponse> selectedContacts;
+
+  final GroupResponse groupResponse;
 
   @override
   State<AddContactScreen> createState() => _AddContactScreenState();
@@ -137,6 +146,8 @@ class _AddContactScreenState extends State<AddContactScreen> {
                     MaterialPageRoute(
                         builder: (context) => HomeScreen(
                               contactResponse: widget.contactResponse,
+                              groupResponse: widget.groupResponse,
+                              selectedContacts: widget.selectedContacts,
                             )));
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text("Contact Created successfully")));

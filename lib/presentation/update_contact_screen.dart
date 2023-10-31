@@ -1,19 +1,29 @@
 import 'package:contact_management/core/model/request/updateContactRequest/UpdateContactRequest.dart';
 import 'package:contact_management/core/model/response/contactResponse/ContactResponse.dart';
 import 'package:contact_management/core/model/response/deleteContactResponse/DeleteContactResponse.dart';
+import 'package:contact_management/core/model/response/groupResponse/GroupResponse.dart';
 import 'package:contact_management/core/model/response/updateContactResponse/UpdateContactResponse.dart';
 import 'package:contact_management/data/network/network_service.dart';
 import 'package:contact_management/data/sharedPreference/shared_preference_helper.dart';
+import 'package:contact_management/presentation/add_group_screen.dart';
 import 'package:contact_management/presentation/home_screen.dart';
+import 'package:contact_management/presentation/view_group.dart';
 import 'package:contact_management/theme/app_style.dart';
 import 'package:contact_management/theme/color_constant.dart';
 import 'package:contact_management/theme/size_utils.dart';
 import 'package:flutter/material.dart';
 
 class UpdateContactScreen extends StatefulWidget {
-  const UpdateContactScreen({super.key, required this.contactResponse});
+  const UpdateContactScreen(
+      {super.key,
+      required this.contactResponse,
+      required this.groupResponse,
+      required this.selectedContacts});
 
   final ContactResponse contactResponse;
+  final List<ContactResponse> selectedContacts;
+
+  final GroupResponse groupResponse;
 
   @override
   State<UpdateContactScreen> createState() => _UpdateContactScreenState();
@@ -21,153 +31,125 @@ class UpdateContactScreen extends StatefulWidget {
 
 class _UpdateContactScreenState extends State<UpdateContactScreen> {
   NetworkService service = NetworkService();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool isLoading = false;
-  bool _isHidden = true;
-  bool submit = false;
-  bool submits = false;
-  String _errorMessage = '';
-  Future<UpdateContactResponse>? updateContactResponse;
-  List<UpdateContactResponse>? update;
-  Future<DeleteContactResponse>? deleteContactResponse;
+  Future<List<GroupResponse>>? groupResponse;
+  List<GroupResponse>? response;
 
   @override
   void initState() {
     super.initState();
     SharedPreferenceHelper().getUserInformation().then((value) {
       setState(() {
-        deleteContactResponse = service.deleteContacts(
-            "Bearer ${value.accessToken}", widget.contactResponse.id!);
-        print(
-            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^${widget.contactResponse.id}");
-        print("************************${updateContactResponse}");
+        groupResponse = service.getGroups("Bearer ${value.accessToken}");
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final deleteContact = Material(
-      child: MaterialButton(
-        color: ColorConstant.redA700,
-        shape: StadiumBorder(),
-        minWidth: 350,
-        onPressed: () async {
-          setState(() {
-            isLoading = true;
-          });
-          SharedPreferenceHelper().getUserInformation().then((value) {
-            service
-                .deleteContacts("Bearer ${value.accessToken}",
-                    widget.contactResponse.id ?? 0)
-                .then((value) {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => HomeScreen(
-                            contactResponse: widget.contactResponse,
-                          )));
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text("Contact Deleted successfully")));
-              print("does it reach here?");
-            }).onError((error, stackTrace) {
-              showMessage("Contact not deleted");
-              setState(() {
-                isLoading = false;
-              });
-            });
-          });
-        },
-        child: Text(
-          "Delete Contact",
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-    );
-
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.grey,
-          title: Center(
-            child: Text(
-              'Delete Contact',
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.left,
-              style: AppStyle.txtInterSemiBold24.copyWith(
-                letterSpacing: getHorizontalSize(
-                  0.50,
-                ),
-              ),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Center(child: Text('View Group')),
+        automaticallyImplyLeading: true,
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => HomeScreen(
+                          contactResponse: widget.contactResponse,
+                          groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
+                        )));
+          },
+          child: Icon(
+            Icons.arrow_back_sharp, // add custom icons also
           ),
-          elevation: 0,
-          automaticallyImplyLeading: true,
         ),
-        body: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: getPadding(top: 15),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: getPadding(bottom: 2),
-                          child: isLoading
-                              ? const CircularProgressIndicator()
-                              : deleteContact,
-                        ),
-                      ],
-                    ),
-                  ),
+        actions: [
+          Padding(
+              padding: EdgeInsets.only(right: 20.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => GroupScreen(
+                                contactResponse: widget.contactResponse,
+                                groupResponse: widget.groupResponse, selectedContacts: widget.selectedContacts,
+                              )));
+                },
+                child: Icon(
+                  Icons.add,
+                  size: 26.0,
                 ),
-                Padding(
-                  padding: getPadding(top: 15),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      height: getVerticalSize(74.00),
-                      width: getHorizontalSize(396.00),
-                      margin: getMargin(left: 16, right: 16, bottom: 4),
-                      child: Stack(
-                        alignment: Alignment.topLeft,
-                        children: [
-                          Align(
-                            alignment: Alignment.bottomLeft,
-                            child: Container(
-                              height: getVerticalSize(
-                                74.00,
-                              ),
-                              width: getHorizontalSize(
-                                396.00,
-                              ),
-                              margin: getMargin(
-                                top: 10,
-                              ),
-                            ),
-                          ),
-                        ],
+              )),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _pullRefresh,
+        child: FutureBuilder<List<GroupResponse>>(
+          future: groupResponse,
+          builder: (context, snapshot) {
+            print("data reaches here for${groupResponse}");
+            if (snapshot.hasData) {
+              child:
+              return ListView.builder(
+                itemCount: snapshot.data?.length,
+                itemBuilder: (context, index) {
+                  print("data reaches here ${snapshot.data?[index].id}");
+                  return Padding(
+                    padding: getPadding(top: 5),
+                    child: Card(
+                      child: ListTile(
+                        title: Text('${snapshot.data?[index].name}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Text('${widget.selectedContacts[index].name}')
+                          ],
+                        ),
+                        leading: Icon(Icons.group),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text('View Group'),
+                            Icon(Icons.arrow_forward_ios),
+                          ],
+                        ),
+                        // You can customize the leading icon here
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ViewGroupScreen(
+                                        contactResponse: widget.contactResponse,
+                                        groupResponse: snapshot.data![index],
+                                        selectedContacts:
+                                            widget.selectedContacts,
+                                      )));
+                          print("%%%%%%%%%%%%%%%%%%%%${widget.groupResponse}");
+
+                          print(
+                              "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&${widget.contactResponse.id}");
+                        },
                       ),
                     ),
-                  ),
+                  );
+                },
+              );
+            } else if (snapshot.hasError) {
+              return Text('${snapshot.error}');
+            }
+            return Center(
+              child: const SizedBox(
+                height: 40,
+                width: 40,
+                child: Center(
+                  child: CircularProgressIndicator(),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -191,5 +173,14 @@ class _UpdateContactScreenState extends State<UpdateContactScreen> {
         );
       },
     );
+  }
+
+  Future<void> _pullRefresh() async {
+    SharedPreferenceHelper().getUserInformation().then((value) {
+      var service = NetworkService();
+      setState(() {
+        groupResponse = service.getGroups("Bearer ${value.accessToken}");
+      });
+    });
   }
 }
