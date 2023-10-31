@@ -29,8 +29,8 @@ class NetworkService {
   static final deleteContact = BASE_URL + "contacts/";
   static final newGroups = BASE_URL + "groups";
   static final getGroup = BASE_URL + "groups";
-  static final deleteGroups = BASE_URL + "groups";
-  static final updateGroups = BASE_URL + "groups";
+  static final deleteGroups = BASE_URL + "groups/";
+  static final updateGroups = BASE_URL + "groups/";
 
   Future<RegisterResponse> registerUser(RegisterRequest request) async {
     var uri = Uri.parse(register);
@@ -230,7 +230,7 @@ class NetworkService {
   }
 
   Future<DeleteGroupResponse> deleteGroup(String token, int id) async {
-    var uri = Uri.parse(deleteGroups + "/${id}");
+    var uri = Uri.parse(deleteGroups + "${id}");
     Map<String, String> requestHeaders = {
       'accept': 'application/json',
       'content-type': 'application/json',
@@ -256,7 +256,7 @@ class NetworkService {
 
   Future<GroupUpdateResponse> groupUpdateRequests(
       GroupUpdateRequest groupUpdateRequest, token, int id) async {
-    var uri = Uri.parse(updateGroups + "/${id}");
+    var uri = Uri.parse(updateGroups + "${id}");
     Map<String, String> requestHeaders = {
       'accept': 'application/json',
       'content-type': 'application/json',
