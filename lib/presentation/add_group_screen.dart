@@ -117,7 +117,6 @@ class _GroupScreenState extends State<GroupScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Group Created successfully")),
                 );
-
                 // Navigate to the desired screen upon successful creation
                 Navigator.push(
                   context,
@@ -246,16 +245,6 @@ class _GroupScreenState extends State<GroupScreen> {
                                       });
                                     },
                                   ),
-                                  // child: ListTile(
-                                  //   // title: Text('${snapshot.data?[index].name}'),
-                                  //   // subtitle: Column(
-                                  //   //   crossAxisAlignment: CrossAxisAlignment.start,
-                                  //   //   children: [
-                                  //   //     Text('Email: ${snapshot.data?[index].email}'),
-                                  //   //     Text('Phone: ${snapshot.data?[index].phone}'),
-                                  //   //   ],
-                                  //   // ),
-                                  // ),
                                 ),
                               );
                             },

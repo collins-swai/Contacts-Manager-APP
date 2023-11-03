@@ -19,7 +19,7 @@ import 'package:http/http.dart' as http;
 import 'package:contact_management/core/model/response/RegisterResponse/RegisterResponse.dart';
 
 class NetworkService {
-  static final BASE_URL = "https://c09f-105-161-200-124.ngrok-free.app/api/";
+  static final BASE_URL = "https://238e-197-232-65-94.ngrok-free.app/api/";
 
   static final register = BASE_URL + "register";
   static final login = BASE_URL + "login";

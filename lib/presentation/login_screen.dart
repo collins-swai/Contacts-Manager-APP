@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         contentPadding: const EdgeInsets.fromLTRB(14.0, 1.0, 4.0, 2.0),
         labelText: "Password",
-        labelStyle: AppStyle.txtInterMedium12.copyWith(
+        labelStyle: AppStyle.txtInterMedium18.copyWith(
           letterSpacing: 0.50,
           height: 1.00,
         ),

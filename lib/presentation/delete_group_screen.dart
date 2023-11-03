@@ -1,35 +1,31 @@
-import 'package:contact_management/core/model/request/updateContactRequest/UpdateContactRequest.dart';
 import 'package:contact_management/core/model/response/contactResponse/ContactResponse.dart';
-import 'package:contact_management/core/model/response/deleteContactResponse/DeleteContactResponse.dart';
 import 'package:contact_management/core/model/response/groupResponse/GroupResponse.dart';
-import 'package:contact_management/core/model/response/updateContactResponse/UpdateContactResponse.dart';
-import 'package:contact_management/data/network/network_service.dart';
 import 'package:contact_management/data/sharedPreference/shared_preference_helper.dart';
-import 'package:contact_management/presentation/add_group_screen.dart';
+import 'package:contact_management/presentation/delete_screen.dart';
 import 'package:contact_management/presentation/home_screen.dart';
-import 'package:contact_management/presentation/view_group.dart';
-import 'package:contact_management/theme/app_style.dart';
-import 'package:contact_management/theme/color_constant.dart';
 import 'package:contact_management/theme/size_utils.dart';
 import 'package:flutter/material.dart';
 
-class UpdateContactScreen extends StatefulWidget {
-  const UpdateContactScreen(
-      {super.key,
-      required this.contactResponse,
-      required this.groupResponse,
-      required this.selectedContacts});
+import '../data/network/network_service.dart';
 
-  final ContactResponse contactResponse;
-  final List<ContactResponse> selectedContacts;
+class DeleteGroupScreen extends StatefulWidget {
+  const DeleteGroupScreen(
+      {super.key,
+      required this.groupResponse,
+      required this.contactResponse,
+      required this.selectedContacts});
 
   final GroupResponse groupResponse;
 
+  final ContactResponse contactResponse;
+
+  final List<ContactResponse> selectedContacts;
+
   @override
-  State<UpdateContactScreen> createState() => _UpdateContactScreenState();
+  State<DeleteGroupScreen> createState() => _DeleteGroupScreenState();
 }
 
-class _UpdateContactScreenState extends State<UpdateContactScreen> {
+class _DeleteGroupScreenState extends State<DeleteGroupScreen> {
   NetworkService service = NetworkService();
   Future<List<GroupResponse>>? groupResponse;
   List<GroupResponse>? response;
@@ -48,8 +44,7 @@ class _UpdateContactScreenState extends State<UpdateContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Center(child: Text('View Group')),
-        automaticallyImplyLeading: true,
+        title: Center(child: Text('Delete Group')),
         leading: GestureDetector(
           onTap: () {
             Navigator.push(
@@ -65,26 +60,6 @@ class _UpdateContactScreenState extends State<UpdateContactScreen> {
             Icons.arrow_back_sharp, // add custom icons also
           ),
         ),
-        actions: [
-          Padding(
-              padding: EdgeInsets.only(right: 20.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => GroupScreen(
-                                contactResponse: widget.contactResponse,
-                                groupResponse: widget.groupResponse,
-                                selectedContacts: widget.selectedContacts,
-                              )));
-                },
-                child: Icon(
-                  Icons.add,
-                  size: 26.0,
-                ),
-              )),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: _pullRefresh,
@@ -93,7 +68,6 @@ class _UpdateContactScreenState extends State<UpdateContactScreen> {
           builder: (context, snapshot) {
             print(
                 "data reaches here for ********************* ${groupResponse}");
-            print(" dataa for the widget is ${widget.selectedContacts}");
             if (snapshot.hasData) {
               child:
               return ListView.builder(
@@ -102,6 +76,7 @@ class _UpdateContactScreenState extends State<UpdateContactScreen> {
                   var group = snapshot.data![index];
                   var contactsForGroup = widget.selectedContacts;
                   print("data reaches here ${widget.selectedContacts}");
+                  print("data for group is ${group}");
                   return Padding(
                     padding: getPadding(top: 5),
                     child: Column(
@@ -111,8 +86,9 @@ class _UpdateContactScreenState extends State<UpdateContactScreen> {
                             title: Text('${snapshot.data?[index].name}'),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                              ],
+                              children: contactsForGroup
+                                  .map((contact) => Text('${contact.name}'))
+                                  .toList(),
                             ),
                             leading: Icon(Icons.group),
                             trailing: Column(
@@ -128,7 +104,7 @@ class _UpdateContactScreenState extends State<UpdateContactScreen> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => ViewGroupScreen(
+                                      builder: (context) => DeleteScreen(
                                             contactResponse:
                                                 widget.contactResponse,
                                             groupResponse:

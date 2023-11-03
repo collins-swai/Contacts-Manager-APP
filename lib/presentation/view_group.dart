@@ -45,8 +45,8 @@ class _ViewGroupScreenState extends State<ViewGroupScreen> {
             GroupUpdateRequest(name: nameController.text.toString().trim()),
             {"Bearer ${value.accessToken}"},
             widget.groupResponse.id!);
-        deleteGroupResponse = service.deleteGroup(
-            "Bearer ${value.accessToken}", widget.groupResponse.id!);
+        // deleteGroupResponse = service.deleteGroup(
+        //     "Bearer ${value.accessToken}", widget.groupResponse.id!);
         print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^${widget.groupResponse.id}");
       });
     });
@@ -148,44 +148,44 @@ class _ViewGroupScreenState extends State<ViewGroupScreen> {
           elevation: 0,
           automaticallyImplyLeading: true,
           actions: [
-            IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: isLoading
-                    ? null
-                    : () async {
-                        setState(() {
-                          isLoading = true;
-                        });
-                        SharedPreferenceHelper()
-                            .getUserInformation()
-                            .then((value) {
-                          service
-                              .deleteGroup("Bearer ${value.accessToken}",
-                                  widget.groupResponse.id ?? 0)
-                              .then((value) {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => HomeScreen(
-                                          contactResponse:
-                                              widget.contactResponse,
-                                          groupResponse: widget.groupResponse,
-                                          selectedContacts:
-                                              widget.selectedContacts,
-                                        )));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text("Group Deleted successfully")));
-                            print("does it reach here?");
-                          }).onError((error, stackTrace) {
-                            showMessage("Contact not deleted");
-                            setState(() {
-                              isLoading = false;
-                            });
-                          });
-                        });
-                      })
+            // IconButton(
+            //     icon: Icon(Icons.delete),
+            //     onPressed: isLoading
+            //         ? null
+            //         : () async {
+            //             setState(() {
+            //               isLoading = true;
+            //             });
+            //             SharedPreferenceHelper()
+            //                 .getUserInformation()
+            //                 .then((value) {
+            //               service
+            //                   .deleteGroup("Bearer ${value.accessToken}",
+            //                       widget.groupResponse.id ?? 0)
+            //                   .then((value) {
+            //                 Navigator.push(
+            //                     context,
+            //                     MaterialPageRoute(
+            //                         builder: (context) => HomeScreen(
+            //                               contactResponse:
+            //                                   widget.contactResponse,
+            //                               groupResponse: widget.groupResponse,
+            //                               selectedContacts:
+            //                                   widget.selectedContacts,
+            //                             )));
+            //                 ScaffoldMessenger.of(context).showSnackBar(
+            //                     const SnackBar(
+            //                         content:
+            //                             Text("Group Deleted successfully")));
+            //                 print("does it reach here?");
+            //               }).onError((error, stackTrace) {
+            //                 showMessage("Contact not deleted");
+            //                 setState(() {
+            //                   isLoading = false;
+            //                 });
+            //               });
+            //             });
+            //           })
           ],
         ),
         body: SingleChildScrollView(
